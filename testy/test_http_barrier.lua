@@ -56,7 +56,7 @@ local function siteGET(sitename)
 
 	s:close();
 
-	print("siteGET, FINISHED: ", sitename)
+	print("siteGET, FINISHED: ", sitename, success)
 end
 
 
