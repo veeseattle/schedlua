@@ -2,6 +2,7 @@
 package.path = package.path..";../?.lua"
 
 Scheduler = require("schedlua.scheduler")()
+MainScheduler = require("schedlua.scheduler")()
 Task = require("schedlua.task")
 local taskID = 0;
 
@@ -10,11 +11,14 @@ local function getNewTaskID()
 	return taskID;
 end
 
-local function spawn(scheduler, func, ...)
+local function spawn(func, priority, ...)
 	local task = Task(func, ...)
 	task.TaskID = getNewTaskID();
-	scheduler:scheduleTask(task, {...});
-	
+	if (priority == "high") then
+		MainScheduler:scheduleTask(task, {...});
+	else
+		Scheduler:scheduleTask(task, {...});
+	end
 	return task;
 end
 
@@ -30,14 +34,15 @@ local function task2()
 end
 
 local function main()
-	local t1 = spawn(Scheduler, task1)
-	local t2 = spawn(Scheduler, task2)
+	local t1 = spawn(task1, "low")
+	local t2 = spawn(task2, "high")
 
 	while (true) do
 		--print("STATUS: ", t1:getStatus(), t2:getStatus())
 		if t1:getStatus() == "dead" and t2:getStatus() == "dead" then
 			break;
 		end
+		MainScheduler:step()
 		Scheduler:step()
 	end
 end
