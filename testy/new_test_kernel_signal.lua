@@ -23,6 +23,11 @@ local alarm = require("schedlua.alarm")(Kernel)
 local sites = require("sites");
 --local asyncio = require("asyncio")
 
+local function getNewTaskID()
+	taskID = taskID + 1;
+	return taskID;
+end
+
 local function spawn(func, priority, ...)
 	local task = Task(func, ...)
 	task.TaskID = getNewTaskID();
