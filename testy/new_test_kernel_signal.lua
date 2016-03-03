@@ -4,6 +4,8 @@ local Kernel = require("schedlua.kernel")()
 local Functor = require("schedlua.functor")
 local Scheduler = require("schedlua.scheduler")()
 local MainScheduler = require("schedlua.scheduler")()
+Task = require("schedlua.task")
+local taskID = 0
 
 local function getNewTaskID() 
 	taskID = taskID + 1;
@@ -19,6 +21,16 @@ local function spawn(func, priority, ...)
 		Scheduler:scheduleTask(task, {...});
 	end
 	return task;
+end
+
+local function task1()
+	print("first task, first line")
+	Scheduler:yield();
+	print("first task, second line")
+end
+
+local function task2()
+	print("second task, only line")
 end
 
 local function main()
