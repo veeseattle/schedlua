@@ -10,7 +10,7 @@ local ffi = require("ffi")
 local bit = require("bit")
 local band, bor, lshift, rshift = bit.band, bit.bor, bit.lshift, bit.rshift
 
-Scheduler - require("schedlua.scheduler")();
+Scheduler = require("schedlua.scheduler")();
 MainScheduler = require("schedlua.scheduler")();
 Task = require("schedlua.task")
 local taskID = 0;
@@ -104,7 +104,7 @@ local function stopProgram()
 	Kernel:halt();
 end
 
-local function main()
+local function task1()
 	local maxProbes = 80;
 
 	alarm:delay(stopProgram, 1000*120)
@@ -115,6 +115,29 @@ local function main()
 	end
 end
 
+-- local function task1()
+-- 	print("first task, first line")
+-- 	Scheduler:yield();
+-- 	print("first task, second line")
+-- end
+
+local function task2()
+	print("second task, only line")
+end
+
+local function main()
+	local t1 = spawn(task1, "low")
+	local t2 = spawn(task2, "high")
+
+	while (true) do
+		--print("STATUS: ", t1:getStatus(), t2:getStatus())
+		if t1:getStatus() == "dead" and t2:getStatus() == "dead" then
+			break;
+		end
+		MainScheduler:step()
+		Scheduler:step()
+	end
+end
 
 local function probeStress()
 	alarm:delay(stopProgram, 1000*20)
