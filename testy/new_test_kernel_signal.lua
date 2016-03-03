@@ -1,49 +1,32 @@
+--test_linux_net.lua
 package.path = package.path..";../?.lua"
 
-local Kernel = require("schedlua.kernel")()
-local Functor = require("schedlua.functor")
-local Scheduler = require("schedlua.scheduler")()
-local MainScheduler = require("schedlua.scheduler")()
-Task = require("schedlua.task")
-local taskID = 0
-local net = require("schedlua.linux_net")();
-local sites = require("sites");
-local AsyncSocket = require("schedlua.AsyncSocket")
-
---networking packages
+--[[
+	Simple networking test case.
+	Implement a client to the daytime service (port 13)
+	Make a basic TCP connection, read data, finish
+--]]
 local ffi = require("ffi")
 local bit = require("bit")
 local band, bor, lshift, rshift = bit.band, bit.bor, bit.lshift, bit.rshift
 
 
-local function getNewTaskID() 
-	taskID = taskID + 1;
-	return taskID;
-end
+local Kernel = require("schedlua.kernel")();
+local net = require("schedlua.linux_net")();
 
-local function spawn(func, priority, ...)
-	local task = Task(func, ...)
-	task.TaskID = getNewTaskID();
-	if (priority == "high") then
-		MainScheduler:scheduleTask(task, {...});
-	else
-		Scheduler:scheduleTask(task, {...});
-	end
-	return task;
-end
+local alarm = require("schedlua.alarm")(Kernel)
 
--- local function task1()
--- 	print("first task, first line")
--- 	Scheduler:yield();
--- 	print("first task, second line")
--- end
+local sites = require("sites");
+--local asyncio = require("asyncio")
 
-local function task2()
-	print("second task, only line")
-end
+local AsyncSocket = require("schedlua.AsyncSocket")
+
+--asyncio:setEventQuanta(1000);
+
 
 local function httpRequest(s, sitename)
 	local request = string.format("GET / HTTP/1.1\r\nUser-Agent: schedlua (linux-gnu)\r\nAccept: */*\r\nHost: %s\r\nConnection: close\r\n\r\n", sitename);
+	
 
 	local success, err = s:write(request, #request);
 	print("==== httpRequest(), WRITE: ", success, err);
@@ -59,6 +42,7 @@ local function httpResponse(s)
 	local err = nil;
 	local BUFSIZ = 512;
 	local buffer = ffi.new("char[512+1]");
+
 
 	-- Now that the socket is ready, we can wait for it to 
 	-- be readable, and do a read
@@ -104,9 +88,11 @@ local function stopProgram()
 	Kernel:halt();
 end
 
-local function task1()
+local function main()
 	local maxProbes = 80;
 
+	alarm:delay(stopProgram, 1000*120)
+	
 	for idx=1,maxProbes do
 		Kernel:spawn(probeSite, sites[idx])
 		Kernel:yield();
@@ -114,19 +100,14 @@ local function task1()
 end
 
 
-local function main()
-	local t1 = spawn(task1, "low")
-	local t2 = spawn(task2, "high")
+local function probeStress()
+	alarm:delay(stopProgram, 1000*20)
 
-	while (true) do
-		--print("STATUS: ", t1:getStatus(), t2:getStatus())
-		if t1:getStatus() == "dead" and t2:getStatus() == "dead" then
-			break;
-		end
-		MainScheduler:step()
-		Scheduler:step()
+	for i=1,10 do
+		Kernel:spawn(probeSite, sites[i])
+		--probeSite(sites[i])
 	end
 end
 
-main()
-
+Kernel:run(main)
+--Kernel:run(probeStress)
