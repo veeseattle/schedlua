@@ -10,6 +10,10 @@ local ffi = require("ffi")
 local bit = require("bit")
 local band, bor, lshift, rshift = bit.band, bit.bor, bit.lshift, bit.rshift
 
+Scheduler - require("schedlua.scheduler")();
+MainScheduler = require("schedlua.scheduler")();
+Task = require("schedlua.task")
+local taskID = 0;
 
 local Kernel = require("schedlua.kernel")();
 local net = require("schedlua.linux_net")();
@@ -18,6 +22,18 @@ local alarm = require("schedlua.alarm")(Kernel)
 
 local sites = require("sites");
 --local asyncio = require("asyncio")
+
+local function spawn(func, priority, ...)
+	local task = Task(func, ...)
+	task.TaskID = getNewTaskID();
+	if (priority == "high") then
+		MainScheduler:scheduleTask(task, {...});
+	else
+		Scheduler:scheduleTask(task, {...});
+	end
+	return task;
+end
+
 
 local AsyncSocket = require("schedlua.AsyncSocket")
 
