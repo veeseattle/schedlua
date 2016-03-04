@@ -131,8 +131,8 @@ local function task2()
 end
 
 local function main()
-	local t1 = spawn(task1, "low")
-	local t2 = spawn(task2, "high")
+	local t1 = spawn(task1, 3)
+	local t2 = spawn(task2, 9)
 
 	while (true) do
 		--print("STATUS: ", t1:getStatus(), t2:getStatus())

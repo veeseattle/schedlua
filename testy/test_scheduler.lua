@@ -14,7 +14,7 @@ end
 local function spawn(func, priority, ...)
 	local task = Task(func, ...)
 	task.TaskID = getNewTaskID();
-	if (priority == "high") then
+	if (priority <= 5) then
 		MainScheduler:scheduleTask(task, {...});
 	else
 		Scheduler:scheduleTask(task, {...});
