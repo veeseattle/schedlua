@@ -109,8 +109,6 @@ end
 local function task1()
 	local maxProbes = 5;
 
-	alarm:delay(stopProgram, 1000*120)
-	
 	for idx=1,maxProbes do
 		Kernel:spawn(probeSite, sites[idx])
 		Kernel:yield();
