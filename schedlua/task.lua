@@ -18,7 +18,11 @@ function Task.init(self, aroutine, ...)
 
 	local obj = {
 		routine = coroutine.create(aroutine), 
+<<<<<<< HEAD
 		priority = 7,
+=======
+		priority = 5,
+>>>>>>> 9b996881f753ae0b2e4b563294c83dba54605629
 	}
 	setmetatable(obj, Task_mt);
 	
