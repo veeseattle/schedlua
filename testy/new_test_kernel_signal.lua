@@ -1,4 +1,3 @@
---test_linux_net.lua
 package.path = package.path..";../?.lua"
 
 --[[
@@ -13,15 +12,13 @@ local band, bor, lshift, rshift = bit.band, bit.bor, bit.lshift, bit.rshift
 Scheduler = require("schedlua.scheduler")();
 MainScheduler = require("schedlua.scheduler")();
 Task = require("schedlua.task")
-local taskID = 0;
 
 local Kernel = require("schedlua.kernel")();
 local net = require("schedlua.linux_net")();
-
-local alarm = require("schedlua.alarm")(Kernel)
-
 local sites = require("sites");
 --local asyncio = require("asyncio")
+
+local taskID = 0;
 
 local function getNewTaskID()
 	taskID = taskID + 1;
@@ -31,7 +28,7 @@ end
 local function spawn(func, priority, ...)
 	local task = Task(func, ...)
 	task.TaskID = getNewTaskID();
-	if (priority == "high") then
+	if (priority <= 5) then
 		MainScheduler:scheduleTask(task, {...});
 	else
 		Scheduler:scheduleTask(task, {...});
@@ -110,7 +107,7 @@ local function stopProgram()
 end
 
 local function task1()
-	local maxProbes = 80;
+	local maxProbes = 5;
 
 	alarm:delay(stopProgram, 1000*120)
 	
@@ -131,8 +128,8 @@ local function task2()
 end
 
 local function main()
-	local t1 = spawn(task1, "low")
-	local t2 = spawn(task2, "high")
+	local t1 = spawn(task1, 9)
+	local t2 = spawn(task2, 2)
 
 	while (true) do
 		--print("STATUS: ", t1:getStatus(), t2:getStatus())
@@ -144,14 +141,4 @@ local function main()
 	end
 end
 
-local function probeStress()
-	alarm:delay(stopProgram, 1000*20)
-
-	for i=1,10 do
-		Kernel:spawn(probeSite, sites[i])
-		--probeSite(sites[i])
-	end
-end
-
 Kernel:run(main)
---Kernel:run(probeStress)
